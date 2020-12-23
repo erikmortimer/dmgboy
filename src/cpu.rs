@@ -14,6 +14,14 @@ struct Registers {
     l: u8,
 }
 
+enum Instruction {
+    ADD(ArithmeticTarget),
+}
+
+enum ArithmeticTarget {
+    A, B, C, D, E, H, L,
+}
+
 struct FlagsRegister {
     zero: bool,
     subtract: bool,
@@ -82,5 +90,30 @@ impl Registers {
     fn set_hl(&mut self, value: u16){
         self.h = ((value & 0xFF00) >> 8) as u8;
         self.l = (value & 0xFF) as u8;
+    }
+}
+
+// CPU Instructions
+impl CPU {
+    fn execute(&mut self, instruction: Instruction) {
+        match instruction {
+            Instruction::ADD(target) => {
+                match target {
+                    ArithmeticTarget::C => {
+                        let value = self.registers.c;
+                        let new_value = self.add(value);
+                        self.registers.a = new_value;
+                    }
+                    _ => { /* TODO: support more targets */}
+                }
+            }
+            _ => { /* TODO: support more instructions */ }
+        }
+    }
+    
+    fn add(&mut self, value: u8) -> u8 { 
+        let (new_value, did_overflow) = self.registers.a.overflowing_add(value);
+        // TODO: set flag
+        new_value
     }
 }
